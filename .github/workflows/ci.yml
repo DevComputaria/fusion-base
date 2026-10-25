@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install bandit
+
+      - name: Bandit (security)
+        run: bandit -r src/ -ll -f txt
+
+      - name: Tests + Coverage
+        run: |
+          pytest tests/ -m "not integration" \
+            --cov=fusionbase \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --tb=short
+
+      - name: CI Summary
+        if: always()
+        run: |
+          echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bandit**: security scan on \`src/\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tests**: unit + property + schema (integration skipped)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Coverage**: see job log / coverage.xml" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "APK/AAB integration tests are out of scope for this workflow." >> $GITHUB_STEP_SUMMARY

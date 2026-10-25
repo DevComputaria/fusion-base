@@ -1,0 +1,27 @@
+[project]
+name = "fusion-base"
+version = "0.1.0"
+description = "Fusion Base - Injeção automática de telemetria em AAB/APK"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "hypothesis>=6.0", "jsonschema>=4.0"]
+
+[project.scripts]
+fusion-base = "fusionbase.interfaces.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+    "integration: testes que exigem ferramentas externas",
+]
