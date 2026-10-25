@@ -73,6 +73,22 @@ Pontos naturais de extensão:
 ## Limitações atuais (MVP)
 
 - Telemetria só faz `Log.i` (stub)
-- Injeção principal apenas em `Application.onCreate`
+- Injeção principal apenas em `Application.onCreate`; outros pontos falham de forma explícita
 - Sem ofuscação ainda
 - Sem testes automatizados de instalação
+
+## Garantias da injeção Smali
+
+- Localiza a classe `Application` em `smali/` e nos diretórios de múltiplos dex
+  (`smali_classesN/`).
+- Insere a chamada de telemetria depois de `.locals` ou `.registers`, preservando
+  a sintaxe necessária para remontagem pelo Apktool.
+- É idempotente: uma segunda execução retorna `already_applied` sem duplicar a
+  chamada.
+- Retorna um resultado explícito para classe/método ausente ou método inválido.
+- O pipeline é *fail-closed*: não remonta nem assina o APK quando a injeção
+  obrigatória não foi comprovada.
+
+O CI remonta uma fixture multidex com Apktool e publica cobertura e JUnit como
+artefatos. Instalação, assinatura e confirmação de execução em dispositivo ainda
+dependem do trabalho E2E planejado no roadmap.

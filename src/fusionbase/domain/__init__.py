@@ -18,6 +18,15 @@ class InjectionType(str, Enum):
     NATIVE_SO = "native_so"
 
 
+class InjectionStatus(str, Enum):
+    APPLIED = "applied"
+    ALREADY_APPLIED = "already_applied"
+    CLASS_NOT_FOUND = "class_not_found"
+    METHOD_NOT_FOUND = "method_not_found"
+    INVALID_METHOD = "invalid_method"
+    UNSUPPORTED_MAPPING = "unsupported_mapping"
+
+
 @dataclass(frozen=True)
 class InjectionPoint:
     type: InjectionType
@@ -55,6 +64,22 @@ class InjectionMapping:
             },
             "confidence": self.confidence,
             "notes": self.notes,
+        }
+
+
+@dataclass(frozen=True)
+class InjectionResult:
+    status: InjectionStatus
+    class_name: Optional[str] = None
+    method: Optional[str] = None
+    target_path: Optional[str] = None
+    message: str = ""
+
+    @property
+    def successful(self) -> bool:
+        return self.status in {
+            InjectionStatus.APPLIED,
+            InjectionStatus.ALREADY_APPLIED,
         }
 
 

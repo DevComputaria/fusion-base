@@ -50,7 +50,14 @@ class ProtectAppUseCase:
             mapping = self.mapper.map(unpacked)
 
             # 3. Inject
-            self.injector.inject(unpacked, mapping, request.elastic_url)
+            injection = self.injector.inject(unpacked, mapping, request.elastic_url)
+            if not injection.successful:
+                return BuildResult(
+                    output_path="",
+                    mapping=mapping,
+                    success=False,
+                    message=f"Injeção obrigatória falhou: {injection.message}",
+                )
 
             # 4. Repackage
             unsigned = workdir / "unsigned.apk"

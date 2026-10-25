@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Protocol
 
-from fusionbase.domain import InjectionMapping, BuildRequest, BuildResult
+from fusionbase.domain import InjectionMapping, InjectionResult
 
 
 class BinaryUnpacker(Protocol):
@@ -15,7 +15,12 @@ class InjectionMapperPort(Protocol):
 
 
 class InjectorPort(Protocol):
-    def inject(self, unpacked_dir: Path, mapping: InjectionMapping, elastic_url: str) -> None: ...
+    def inject(
+        self,
+        unpacked_dir: Path,
+        mapping: InjectionMapping,
+        elastic_url: str,
+    ) -> InjectionResult: ...
 
 
 class Repackager(Protocol):

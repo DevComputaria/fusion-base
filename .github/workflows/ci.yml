@@ -22,16 +22,40 @@ jobs:
           pip install -e ".[dev]"
           pip install bandit
 
+      - name: Install Apktool
+        env:
+          APKTOOL_JAR: ${{ runner.temp }}/apktool_3.0.3.jar
+          APKTOOL_SHA256: dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar \
+            --output "$APKTOOL_JAR"
+          echo "$APKTOOL_SHA256  $APKTOOL_JAR" | sha256sum --check
+          echo "APKTOOL_JAR=$APKTOOL_JAR" >> "$GITHUB_ENV"
+
       - name: Bandit (security)
         run: bandit -r src/ -ll -f txt
 
       - name: Tests + Coverage
         run: |
-          pytest tests/ -m "not integration" \
+          pytest tests/ \
             --cov=fusionbase \
             --cov-report=term-missing \
             --cov-report=xml \
+            --junitxml=test-results.xml \
             --tb=short
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-evidence
+          path: |
+            coverage.xml
+            test-results.xml
+            tests/README.md
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: CI Summary
         if: always()
@@ -39,7 +63,7 @@ jobs:
           echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Bandit**: security scan on \`src/\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Tests**: unit + property + schema (integration skipped)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Coverage**: see job log / coverage.xml" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tests**: unit + property + schema + Apktool integration" >> $GITHUB_STEP_SUMMARY
+          echo "- **Coverage**: see job log and test-evidence artifact" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "APK/AAB integration tests are out of scope for this workflow." >> $GITHUB_STEP_SUMMARY
+          echo "The Apktool test proves Smali rebuild; install, signing and runtime execution remain out of scope." >> $GITHUB_STEP_SUMMARY
