@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+from defusedxml.common import DefusedXmlException
 
 from fusionbase.domain import (
     AppType,
@@ -131,6 +132,20 @@ class TestProtectAppUseCase:
 # ---------------------------------------------------------------------------
 
 class TestManifestInjectionMapper:
+    def test_rejects_xml_entities(self, tmp_path):
+        manifest = tmp_path / "AndroidManifest.xml"
+        manifest.write_text('''<?xml version="1.0"?>
+<!DOCTYPE manifest [
+    <!ENTITY payload SYSTEM "file:///etc/passwd">
+]>
+<manifest package="&payload;"/>
+''')
+
+        mapper = ManifestInjectionMapper()
+
+        with pytest.raises(DefusedXmlException):
+            mapper.map(tmp_path)
+
     def test_maps_application_oncreate(self, tmp_path):
         manifest = tmp_path / "AndroidManifest.xml"
         manifest.write_text('''<?xml version="1.0" encoding="utf-8"?>

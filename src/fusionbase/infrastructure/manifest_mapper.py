@@ -1,6 +1,7 @@
 """Mapper baseado em AndroidManifest + detecção de Flutter"""
 from pathlib import Path
-from xml.etree import ElementTree as ET
+
+from defusedxml import ElementTree as ET
 
 from fusionbase.domain import (
     AppType,
